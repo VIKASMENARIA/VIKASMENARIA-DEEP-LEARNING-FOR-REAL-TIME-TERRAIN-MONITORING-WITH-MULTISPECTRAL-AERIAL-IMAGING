@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Realtime Terrain Monitoring</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f1f8e9;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      color: #333;
+    }
+    header {
+      background-color: #558b2f;
+      color: white;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: 700;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    #imageInput {
+      margin: 30px auto;
+      padding: 20px;
+      border: 2px dashed #558b2f;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    #imageInput:hover {
+      border-color: #33691e;
+    }
+    #preview {
+      margin-top: 20px;
+      max-width: 300px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 22px;
+      padding: 15px;
+      background-color: #ffffff;
+      display: inline-block;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: 0.3s ease-in-out;
+    }
+    .output:hover {
+      background-color: #e6ee9c;
+    }
+    footer {
+      margin-top: 50px;
+      background-color: #33691e;
+      color: white;
+      padding: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>Terrain Monitoring using Multispectral Imaging</header>
+
+  <input type="file" accept="image/*" id="imageInput"/>
+  <img id="preview" src="" alt="Image Preview" style="display:none;"/>
+
+  <div class="output" id="status">Model is loading...</div>
+  <div class="output" id="terrainStatus">Terrain Status will appear here...</div>
+
+  <footer>&copy; 2025 Vikas Menaria | Terrain Deep Learning Monitor</footer>
+
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const terrainStatusText = document.getElementById("terrainStatus");
+    const statusText = document.getElementById("status");
+
+    let model;
+
+    async function loadModel() {
+      try {
+        model = await tf.loadGraphModel("https://raw.githubusercontent.com/VIKASMENARIA/VIKASMENARIA-DEEP-LEARNING-FOR-REAL-TIME-TERRAIN-MONITORING-WITH-MULTISPECTRAL-AERIAL-IMAGING/main/terrainModel/model.json");
+        statusText.innerText = "Model loaded. Upload an image.";
+      } catch (error) {
+        statusText.innerText = "Failed to load model.";
+        console.error("Model loading error:", error);
+      }
+    }
+
+    imageInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file || !model) return;
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        preview.src = reader.result;
+        preview.style.display = "block";
+
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = async () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 180;
+          canvas.height = 180;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, 180, 180);
+
+          let imgTensor = tf.browser.fromPixels(canvas)
+            .toFloat()
+            .expandDims(0);
+
+          const prediction = await model.predict(imgTensor).data();
+
+          // Update this array if your model has different classes
+          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy', 'Snowy'];
+
+          const maxIndex = prediction.indexOf(Math.max(...prediction));
+          terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
+        };
+      };
+      reader.readAsDataURL(file);
+    });
+
+    loadModel();
+  </script>
+</body>
+</html>
