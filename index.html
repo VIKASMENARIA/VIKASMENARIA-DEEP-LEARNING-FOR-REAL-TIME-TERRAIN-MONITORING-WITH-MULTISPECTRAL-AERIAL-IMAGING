@@ -2,98 +2,202 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Realtime Terrain Monitoring</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f1f8e9;
       margin: 0;
-      padding: 0;
-      text-align: center;
-      color: #333;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #d0f0c0, #a3d9a5);
+      color: #2f4f4f;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
     }
 
     header {
-      background-color: #558b2f;
-      color: white;
-      padding: 20px;
-      font-size: 28px;
-      font-weight: 700;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      color: #1b3a1b;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      max-width: 480px;
+      width: 100%;
+    }
+
+    main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      max-width: 900px;
+      width: 100%;
+      background: #ffffffcc;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 2rem;
+      justify-content: center;
+    }
+
+    /* Upload Card */
+    .upload-card {
+      flex: 1 1 320px;
+      background: #e9f5db;
+      border-radius: 12px;
+      padding: 2rem;
+      border: 2px dashed #4caf50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+      user-select: none;
+      position: relative;
+      min-height: 280px;
+      justify-content: center;
+    }
+
+    .upload-card:hover {
+      border-color: #388e3c;
+      background-color: #f1f9e9;
     }
 
     #imageInput {
-      margin: 30px auto;
-      padding: 20px;
-      border: 2px dashed #558b2f;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
       cursor: pointer;
-      transition: border-color 0.3s;
+      top: 0;
+      left: 0;
     }
 
-    #imageInput:hover {
-      border-color: #33691e;
+    .upload-text {
+      font-size: 1.1rem;
+      color: #33691e;
+      font-weight: 600;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Preview Card */
+    .preview-card {
+      flex: 1 1 320px;
+      background: #f5f9f3;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: inset 0 0 12px #c7d9b1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 280px;
     }
 
     #preview {
-      margin-top: 20px;
-      max-width: 300px;
-      height: auto;
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+      object-fit: contain;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .no-preview {
+      font-size: 1rem;
+      color: #8f9d7a;
+      margin-top: auto;
+      margin-bottom: auto;
+      text-align: center;
+    }
+
+    /* Results Card */
+    .results-card {
+      flex-basis: 100%;
+      background: #e6f0d4;
       border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .output {
-      margin-top: 20px;
-      font-size: 22px;
-      padding: 15px;
-      background-color: #ffffff;
-      display: inline-block;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      transition: 0.3s ease-in-out;
-    }
-
-    .output:hover {
-      background-color: #e6ee9c;
+      margin-top: 1.5rem;
+      padding: 1.8rem 2rem;
+      box-shadow: 0 4px 18px rgba(46,125,50,0.25);
+      color: #33691e;
+      font-weight: 600;
+      font-size: 1.3rem;
+      text-align: center;
+      min-height: 70px;
+      user-select: none;
     }
 
     footer {
-      margin-top: 50px;
-      background-color: #33691e;
-      color: white;
-      padding: 15px;
-      font-size: 14px;
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #264d14cc;
+      font-weight: 500;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        flex-direction: column;
+        padding: 1rem 1rem 2rem;
+      }
+      .upload-card, .preview-card {
+        flex-basis: 100%;
+        min-height: 240px;
+      }
+      .results-card {
+        font-size: 1.1rem;
+      }
     }
   </style>
 </head>
 <body>
-  <header>Terrain Monitoring using Multispectral Imaging</header>
+  <header>Realtime Terrain Monitoring</header>
+  <main>
+    <label class="upload-card" for="imageInput" tabindex="0" aria-label="Upload image for terrain monitoring">
+      <input type="file" accept="image/*" id="imageInput" />
+      <span class="upload-text">Click or Drag & Drop to Upload Image</span>
+    </label>
 
-  <input type="file" accept="image/*" id="imageInput"/>
-  <img id="preview" src="" alt="Image Preview" style="display:none;"/>
+    <section class="preview-card" aria-live="polite" aria-label="Image preview area">
+      <img id="preview" alt="Uploaded terrain image preview" />
+      <p class="no-preview">No image uploaded yet.</p>
+    </section>
 
-  <div class="output" id="status">Model is loading...</div>
-  <div class="output" id="terrainStatus">Terrain Status will appear here...</div>
+    <section class="results-card" aria-live="polite" aria-atomic="true" id="results">
+      Loading model, please wait...
+    </section>
+  </main>
 
   <footer>&copy; 2025 Vikas Menaria | Terrain Deep Learning Monitor</footer>
 
   <script>
     const imageInput = document.getElementById("imageInput");
     const preview = document.getElementById("preview");
-    const terrainStatusText = document.getElementById("terrainStatus");
-    const statusText = document.getElementById("status");
+    const results = document.getElementById("results");
+    const noPreviewText = document.querySelector(".no-preview");
 
     let model;
 
     async function loadModel() {
-      model = await tf.loadGraphModel("terrainModel/model.json");
-      statusText.innerText = "Model loaded. Upload an image.";
+      try {
+        results.textContent = "Loading model, please wait...";
+        model = await tf.loadGraphModel("terrainModel/model.json");
+        results.textContent = "Model loaded. Please upload an image.";
+      } catch (e) {
+        results.textContent = "Failed to load model.";
+        console.error("Model loading error:", e);
+      }
     }
 
     imageInput.addEventListener("change", async (e) => {
@@ -101,33 +205,45 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async () => {
+      reader.onload = () => {
         preview.src = reader.result;
         preview.style.display = "block";
+        noPreviewText.style.display = "none";
 
         const img = new Image();
         img.src = reader.result;
         img.onload = async () => {
           const canvas = document.createElement("canvas");
-          canvas.width = 180;
-          canvas.height = 180;
+          const size = 180;
+          canvas.width = size;
+          canvas.height = size;
           const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, 180, 180);
 
-          let imgTensor = tf.browser.fromPixels(canvas)
-            .toFloat()
-            .expandDims(0);
+          // Draw image scaled to fit 180x180 canvas, cropping if needed (center crop)
+          let scale = Math.max(size / img.width, size / img.height);
+          let x = (size / 2) - (img.width / 2) * scale;
+          let y = (size / 2) - (img.height / 2) * scale;
+          ctx.clearRect(0, 0, size, size);
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
-          const prediction = await model.predict(imgTensor).data();
-          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // modify as needed
-          const maxIndex = prediction.indexOf(Math.max(...prediction));
+          let imgTensor = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
 
-          terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
+          try {
+            const prediction = await model.predict(imgTensor).data();
+            const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy'];
+            const maxIndex = prediction.indexOf(Math.max(...prediction));
+            results.textContent = `Terrain Status: ${classes[maxIndex]}`;
+          } catch (error) {
+            results.textContent = "Error during prediction.";
+            console.error("Prediction error:", error);
+          }
         };
       };
       reader.readAsDataURL(file);
     });
-  loadModel();
+
+    // Initialize
+    loadModel();
   </script>
 </body>
 </html>
