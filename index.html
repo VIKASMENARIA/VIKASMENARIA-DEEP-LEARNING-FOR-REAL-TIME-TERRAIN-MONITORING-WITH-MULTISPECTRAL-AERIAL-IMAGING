@@ -15,6 +15,7 @@
       text-align: center;
       color: #333;
     }
+
     header {
       background-color: #558b2f;
       color: white;
@@ -23,6 +24,7 @@
       font-weight: 700;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+
     #imageInput {
       margin: 30px auto;
       padding: 20px;
@@ -33,9 +35,11 @@
       cursor: pointer;
       transition: border-color 0.3s;
     }
+
     #imageInput:hover {
       border-color: #33691e;
     }
+
     #preview {
       margin-top: 20px;
       max-width: 300px;
@@ -43,6 +47,7 @@
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     }
+
     .output {
       margin-top: 20px;
       font-size: 22px;
@@ -53,9 +58,11 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       transition: 0.3s ease-in-out;
     }
+
     .output:hover {
       background-color: #e6ee9c;
     }
+
     footer {
       margin-top: 50px;
       background-color: #33691e;
@@ -85,18 +92,13 @@
     let model;
 
     async function loadModel() {
-      try {
-        model = await tf.loadGraphModel("https://raw.githubusercontent.com/VIKASMENARIA/VIKASMENARIA-DEEP-LEARNING-FOR-REAL-TIME-TERRAIN-MONITORING-WITH-MULTISPECTRAL-AERIAL-IMAGING/main/terrainModel/model.json");
-        statusText.innerText = "Model loaded. Upload an image.";
-      } catch (error) {
-        statusText.innerText = "Failed to load model.";
-        console.error("Model loading error:", error);
-      }
+      model = await tf.loadGraphModel("terrainModel/model.json");
+      statusText.innerText = "Model loaded. Upload an image.";
     }
 
     imageInput.addEventListener("change", async (e) => {
       const file = e.target.files[0];
-      if (!file || !model) return;
+      if (!file) return;
 
       const reader = new FileReader();
       reader.onload = async () => {
@@ -117,18 +119,15 @@
             .expandDims(0);
 
           const prediction = await model.predict(imgTensor).data();
-
-          // Update this array if your model has different classes
-          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy', 'Snowy'];
-
+          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // modify as needed
           const maxIndex = prediction.indexOf(Math.max(...prediction));
+
           terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
         };
       };
       reader.readAsDataURL(file);
     });
-
-    loadModel();
+  loadModel();
   </script>
 </body>
 </html>
