@@ -190,15 +190,16 @@
     let model;
 
     async function loadModel() {
-      try {
-        results.textContent = "Loading model, please wait...";
-        model = await tf.loadGraphModel("terrainModel/model.json");
-        results.textContent = "Model loaded. Please upload an image.";
-      } catch (e) {
-        results.textContent = "Failed to load model.";
-        console.error("Model loading error:", e);
-      }
-    }
+  try {
+    results.textContent = "Loading model, please wait...";
+    model = await tf.loadGraphModel("terrainModel/model.json");
+    results.textContent = "Model loaded. Please upload an image.";
+  } catch (e) {
+    results.textContent = "Failed to load model: " + e.message;
+    console.error("Model loading error:", e);
+  }
+}
+
 
     imageInput.addEventListener("change", async (e) => {
       const file = e.target.files[0];
