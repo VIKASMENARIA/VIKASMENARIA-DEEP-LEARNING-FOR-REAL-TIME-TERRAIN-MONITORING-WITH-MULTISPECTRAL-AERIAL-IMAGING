@@ -78,7 +78,7 @@
   <input type="file" accept="image/*" id="imageInput"/>
   <img id="preview" src="" alt="Image Preview" style="display:none;"/>
 
-  <div class="output" id="status">Loading model, please wait...</div>
+  <div class="output" id="status">Model is loading...</div>
   <div class="output" id="terrainStatus">Terrain Status will appear here...</div>
 
   <footer>&copy; 2025 Vikas Menaria | Terrain Deep Learning Monitor</footer>
@@ -92,19 +92,8 @@
     let model;
 
     async function loadModel() {
-      try {
-        // Force TensorFlow.js to use CPU backend to avoid WebGL errors
-        await tf.setBackend('cpu');
-        await tf.ready();
-        
-        statusText.innerText = "Loading model...";
-        model = await tf.loadGraphModel("https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_100_224/classification/3/default/1", {fromTFHub: true});
-
-        statusText.innerText = "Model loaded. Upload an image.";
-      } catch (e) {
-        statusText.innerText = "Model loading error: " + e.message;
-        console.error("Model loading error:", e);
-      }
+      model = await tf.loadGraphModel("terrainModel/model.json");
+      statusText.innerText = "Model loaded. Upload an image.";
     }
 
     imageInput.addEventListener("change", async (e) => {
@@ -119,7 +108,6 @@
         const img = new Image();
         img.src = reader.result;
         img.onload = async () => {
-          // Prepare image tensor
           const canvas = document.createElement("canvas");
           canvas.width = 180;
           canvas.height = 180;
@@ -130,23 +118,16 @@
             .toFloat()
             .expandDims(0);
 
-          // Predict terrain type
-          try {
-            const prediction = await model.predict(imgTensor).data();
-            const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // modify as needed
-            const maxIndex = prediction.indexOf(Math.max(...prediction));
+          const prediction = await model.predict(imgTensor).data();
+          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // modify as needed
+          const maxIndex = prediction.indexOf(Math.max(...prediction));
 
-            terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
-          } catch (err) {
-            terrainStatusText.innerText = "Prediction error: " + err.message;
-            console.error("Prediction error:", err);
-          }
+          terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
         };
       };
       reader.readAsDataURL(file);
     });
-
-    loadModel();
+  loadModel();
   </script>
 </body>
 </html>
